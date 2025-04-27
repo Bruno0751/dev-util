@@ -1,12 +1,14 @@
 package dev.api;
 
-import dev.dto.Cliente;
+import dev.dto.ClienteDto;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -19,10 +21,10 @@ public class APICliente {
     public static String requestGET() {
         try {
             URL url = new URL("http://localhost:1010/v1/cliente/");
-            
+
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
-            connection.setDoOutput(false);
+            connection.setDoOutput(false); // Permite enviar body
             connection.setDoInput(true);
             connection.setRequestProperty("Content-Type", "application/json");
             connection.connect();
@@ -41,22 +43,22 @@ public class APICliente {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-        return null;
+        return "";
     }
 
-    public static void requestPOST(Cliente cliente) {
+    public static String requestPOST(ClienteDto cliente) throws IOException {
         try {
             URL url = new URL("http://localhost:1010/v1/cliente/");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-            connection.setDoInput(false);
+            connection.setDoOutput(true); // Permite enviar body
+            connection.setDoInput(true);
 
             StringBuilder stringBuilder = new StringBuilder("{");
             stringBuilder.append("\"name\": \"").append(cliente.getName()).append("\", ");
-            stringBuilder.append("\"oldYear\": \"").append(cliente.getOldYear()).append("\", ");
-            stringBuilder.append("\"heigth\": \"").append(cliente.getHeigth()).append("\"");
+            stringBuilder.append("\"old_year\": \"").append(cliente.getOldYear()).append("\", ");
+            stringBuilder.append("\"height\": \"").append(cliente.getHeight()).append("\"");
             stringBuilder.append("}");
             String dto = stringBuilder.toString();
             stringBuilder.setLength(0);
@@ -68,6 +70,62 @@ public class APICliente {
             connection.disconnect();
         } catch (IOException e) {
             System.out.println(e.getMessage());
+            throw new IOException(e.getMessage());
         }
+        return null;
+    }
+
+    public static String requestPUT(ClienteDto cliente) throws IOException {
+        try {
+            URL url = new URL("http://localhost:1010/v1/cliente/123");
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("PUT");
+            connection.setRequestProperty("Content-Type", "application/json; utf-8");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setDoOutput(true); // Permite enviar body
+            connection.setDoInput(true);
+            
+            StringBuilder stringBuilder = new StringBuilder("{");
+            stringBuilder.append("\"name\": \"").append(cliente.getName()).append("\", ");
+            stringBuilder.append("\"old_year\": \"").append(cliente.getOldYear()).append("\", ");
+            stringBuilder.append("\"height\": \"").append(cliente.getHeight()).append("\"");
+            stringBuilder.append("}");
+            String dto = stringBuilder.toString();
+            stringBuilder.setLength(0);
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = dto.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+            System.out.println("Código de resposta: " + connection.getResponseCode());
+            connection.disconnect();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            throw new IOException(e.getMessage());
+        }
+        return null;
+    }
+
+    public static String requestDELETE(String id) throws MalformedURLException, IOException {
+        URL url = null;
+        try {
+            url = new URL("http://localhost:1010/v1/cliente/" + id); // URL de exemplo
+        } catch (MalformedURLException e) {
+            System.out.println(e.getMessage());
+            throw new MalformedURLException(e.getMessage());
+        }
+        try {
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("DELETE");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true); // Permite enviar body
+            connection.setDoInput(true);
+            System.out.println("Código de resposta: " + connection.getResponseCode());
+            connection.disconnect();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            throw new IOException(e.getMessage());
+        }
+        return null;
     }
 }
